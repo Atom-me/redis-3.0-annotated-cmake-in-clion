@@ -36,6 +36,12 @@
 #include "sds.h"
 #include "zmalloc.h"
 
+/**
+ * SDS遵循C字符串以空字符结尾的惯例，保存空字符的1字节空间不计算在SDS的len属性里面，
+ * 并且为空字符分配额外的1字节空间，以及添加空字符到字符串末尾等操作，都是由SDS函数自动完成的，所以这个空字符对于SDS的使用者来说是完全透明的。
+ * 遵循空字符结尾这一惯例的好处是，SDS可以直接重用一部分C字符串函数库里面的函数。
+ */
+
 /*
  * 根据给定的初始化字符串 init 和字符串长度 initlen
  * 创建一个新的 sds
@@ -123,7 +129,7 @@ sds sdsempty(void) {
  *        创建失败返回 NULL
  *
  * 复杂度
- *  T = O(N)
+ *  T = O(N) : N 为给定C字符串的长度
  */
 /* Create a new sds string starting from a null termined C string. */
 sds sdsnew(const char *init) {
@@ -139,7 +145,7 @@ sds sdsnew(const char *init) {
  *        创建失败返回 NULL
  *
  * 复杂度
- *  T = O(N)
+ *  T = O(N)：N为给定SDS的长度
  */
 /* Duplicate an sds string. */
 sds sdsdup(const sds s) {
@@ -184,8 +190,7 @@ void sdsupdatelen(sds s) {
  * 在不释放 SDS 的字符串空间的情况下，
  * 重置 SDS 所保存的字符串为空字符串。
  *
- * 复杂度
- *  T = O(1)
+ * 因为惰性空间释放策略，所以复杂度 T = O(1)
  */
 /* Modify an sds string on-place to make it empty (zero length).
  * However all the existing buffer is not discarded but set as free space

@@ -28,20 +28,32 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+/**
+ * 简单动态字符串
+ */
+
 #ifndef __SDS_H
 #define __SDS_H
 
+//最大预分配长度：1M
 #define SDS_MAX_PREALLOC (1024*1024)
 
 #include <sys/types.h>
 #include <stdarg.h>
 
+//类型 sds 是 char* 的别名（alias）
 typedef char *sds;
 
+/**
+ * SDS遵循C字符串以空字符结尾的惯例，保存空字符的1字节空间不计算在SDS的len属性里面，
+ * 并且为空字符分配额外的1字节空间，以及添加空字符到字符串末尾等操作，都是由SDS函数自动完成的，所以这个空字符对于SDS的使用者来说是完全透明的。
+ * 遵循空字符结尾这一惯例的好处是，SDS可以直接重用一部分C字符串函数库里面的函数。
+ */
 struct sdshdr {
-    int len;
-    int free;
-    char buf[];
+    int len;//buf[]数组中已经使用的字节的数量，等于sds所保存字符串的长度
+    int free;//buf[]数组中未使用的字节的数量
+    char buf[];//字节数组，用于保存字符串
 };
 
 static inline size_t sdslen(const sds s) {
