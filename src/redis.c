@@ -1736,6 +1736,7 @@ void initServerConfig() {
     server.unixsocketperm = REDIS_DEFAULT_UNIX_SOCKET_PERM;
     server.ipfd_count = 0;
     server.sofd = -1;
+    //默认16个数据库
     server.dbnum = REDIS_DEFAULT_DBNUM;
     server.verbosity = REDIS_DEFAULT_VERBOSITY;
     server.maxidletime = REDIS_MAXIDLETIME;
@@ -2078,6 +2079,7 @@ void initServer() {
     createSharedObjects();
     adjustOpenFilesLimit();
     server.el = aeCreateEventLoop(server.maxclients+REDIS_EVENTLOOP_FDSET_INCR);
+    //初始化存放数据的数据库
     server.db = zmalloc(sizeof(redisDb)*server.dbnum);
 
     /* Open the TCP listening socket for the user commands. */
@@ -2118,7 +2120,7 @@ void initServer() {
         server.db[j].avg_ttl = 0;
     }
 
-    // 创建 PUBSUB 相关结构
+    // 创建 PUBSUB 相关结构（redis的消息队列）
     server.pubsub_channels = dictCreate(&keylistDictType,NULL);
     server.pubsub_patterns = listCreate();
     listSetFreeMethod(server.pubsub_patterns,freePubsubPattern);
@@ -2186,7 +2188,7 @@ void initServer() {
      * no explicit limit in the user provided configuration we set a limit
      * at 3 GB using maxmemory with 'noeviction' policy'. This avoids
      * useless crashes of the Redis instance for out of memory. */
-    // 对于 32 位实例来说，默认将最大可用内存限制在 3 GB
+    // 对于 32位 实例来说，默认将最大可用内存限制在 3 GB
     if (server.arch_bits == 32 && server.maxmemory == 0) {
         redisLog(REDIS_WARNING,"Warning: 32 bit instance detected but no memory limit set. Setting 3 GB maxmemory limit with 'noeviction' policy now.");
         server.maxmemory = 3072LL*(1024*1024); /* 3 GB */
